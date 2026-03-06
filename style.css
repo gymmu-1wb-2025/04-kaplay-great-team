@@ -23,3 +23,16 @@ canvas {
     height: 480px;
     width: 640px;
 }
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #e8f7ff;
+}
+
+canvas {
+    background: #c2e0ff;
+    border: 3px solid #333;
+}

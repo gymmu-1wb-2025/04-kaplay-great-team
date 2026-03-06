@@ -1,23 +1,501 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaplay Projekt</title>
+<script type="module">
 
-    <link rel="stylesheet" href="style.css">
-    <script type="module" src="src/main.js"></script>
-</head>
-<body>
-    <header style="grid-area: header">
-        <h1>Spiel Projekt</h1>
-    </header>
+import kaplay from "https://unpkg.com/kaplay@4000.0.0-alpha.20/dist/kaplay.mjs";
 
-    <main style="grid-area: main">
-        <canvas id="game-canvas"></canvas>
-    </main>
+const k = kaplay();
 
-    <footer style="grid-area: footer">Spielprojekt</footer>
+const {
 
-</body>
-</html>
+add, pos, rect, circle, area, color, move, rand,
+
+width, height, onKeyDown, loop, onCollide, destroy,
+
+onUpdate, text, anchor, outline
+
+} = k;
+
+let score = 0;
+
+let gameOver = false;
+
+let currentLevel = 1;
+
+let levelTransition = false;
+
+let appleSpeed = { min: 170, max: 240 };
+
+// ========= PLAYER: Person + Korb =========
+
+const player = add([
+
+pos(width() / 2, height() - 90),
+
+area({ shape: new k.Rect(k.vec2(-40, -40), 80, 80) }),
+
+anchor("center"),
+
+"player",
+
+{ speed: 300 },
+
+]);
+
+// Kopf
+
+player.add([
+
+circle(12),
+
+pos(0, -34),
+
+color(255, 220, 180),
+
+outline(2),
+
+]);
+
+// Körper
+
+player.add([
+
+rect(28, 38),
+
+pos(0, -10),
+
+anchor("center"),
+
+color(30, 80, 220),
+
+outline(2),
+
+]);
+
+// Korb
+
+player.add([
+
+rect(70, 18, { radius: 6 }),
+
+pos(0, 16),
+
+anchor("center"),
+
+color(139, 69, 19),
+
+outline(2),
+
+"basket",
+
+]);
+
+// ========= HUD =========
+
+const scoreText = add([
+
+text("Score: 0", { size: 24 }),
+
+pos(12, 12),
+
+color(0, 0, 0),
+
+]);
+
+const levelText = add([
+
+text("Level: 1", { size: 24 }),
+
+pos(12, 42),
+
+color(0, 0, 0),
+
+]);
+
+// ========= Steuerung =========
+
+onKeyDown("left", () => {
+
+if (!gameOver && !levelTransition) player.move(-player.speed, 0);
+
+});
+
+onKeyDown("right", () => {
+
+if (!gameOver && !levelTransition) player.move(player.speed, 0);
+
+});
+
+player.onUpdate(() => {
+
+const half = 40;
+
+if (player.pos.x < half) player.pos.x = half;
+
+if (player.pos.x > width() - half) player.pos.x = width() - half;
+
+});
+
+// ========= Spawn: normale + giftige Äpfel =========
+
+// Wahrscheinlichkeit für giftig: 25%
+
+loop(1, () => {
+
+if (gameOver || levelTransition) return;
+
+const isPoison = Math.random() < 0.25;
+
+add([
+
+circle(15),
+
+pos(rand(0, width()), 0),
+
+area(),
+
+move(k.DOWN, rand(appleSpeed.min, appleSpeed.max)),
+
+isPoison ? color(30, 120, 30) : color(255, 0, 0),
+
+isPoison ? "poisonApple" : "apple",
+
+]);
+
+});
+
+// ========= Goldener Apfel (ab Level 2, selten) =========
+
+loop(6, () => {
+
+if (gameOver || levelTransition || currentLevel < 2) return;
+
+add([
+
+circle(15),
+
+pos(rand(0, width()), 0),
+
+area(),
+
+move(k.DOWN, rand(appleSpeed.min, appleSpeed.max)),
+
+color(255, 215, 0),
+
+outline(2, k.rgb(218, 165, 32)),
+
+"goldenApple",
+
+]);
+
+});
+
+// ========= Violetter Apfel (ab Level 2) =========
+
+loop(4, () => {
+
+if (gameOver || levelTransition || currentLevel < 2) return;
+
+add([
+
+circle(15),
+
+pos(rand(0, width()), 0),
+
+area(),
+
+move(k.DOWN, rand(appleSpeed.min, appleSpeed.max)),
+
+color(138, 43, 226),
+
+"purpleApple",
+
+]);
+
+});
+
+// ========= Kollisionen =========
+
+onCollide("player", "apple", (p, apple) => {
+
+if (gameOver || levelTransition) return;
+
+destroy(apple);
+
+score++;
+
+scoreText.text = "Score: " + score;
+
+});
+
+onCollide("player", "poisonApple", (p, bad) => {
+
+if (gameOver || levelTransition) return;
+
+destroy(bad);
+
+endGame();
+
+});
+
+onCollide("player", "goldenApple", (p, golden) => {
+
+if (gameOver || levelTransition) return;
+
+destroy(golden);
+
+score += 2;
+
+scoreText.text = "Score: " + score;
+
+});
+
+onCollide("player", "purpleApple", (p, purple) => {
+
+if (gameOver || levelTransition) return;
+
+destroy(purple);
+
+score -= 2;
+
+if (score < 0) score = 0;
+
+scoreText.text = "Score: " + score;
+
+});
+
+// ========= Cleanup (wenn unten raus) =========
+
+onUpdate("apple", (a) => {
+
+if (a.pos.y > height() + 30) destroy(a);
+
+});
+
+onUpdate("poisonApple", (a) => {
+
+if (a.pos.y > height() + 30) destroy(a);
+
+});
+
+onUpdate("goldenApple", (a) => {
+
+if (a.pos.y > height() + 30) destroy(a);
+
+});
+
+onUpdate("purpleApple", (a) => {
+
+if (a.pos.y > height() + 30) destroy(a);
+
+});
+
+// ========= Level Transition =========
+
+let overlay = null;
+
+let levelMessage = null;
+
+function showLevelTransition(level) {
+
+levelTransition = true;
+
+overlay = add([
+
+rect(width(), height()),
+
+pos(0, 0),
+
+color(0, 0, 0),
+
+k.opacity(0.5),
+
+k.fixed(),
+
+k.z(100),
+
+]);
+
+levelMessage = add([
+
+text("NÄCHSTES LEVEL\n\n(Leertaste drücken)", { size: 48, align: "center" }),
+
+pos(width() / 2, height() / 2),
+
+anchor("center"),
+
+color(255, 215, 0),
+
+k.fixed(),
+
+k.z(101),
+
+]);
+
+}
+
+onKeyDown("space", () => {
+
+if (levelTransition) {
+
+destroy(overlay);
+
+destroy(levelMessage);
+
+levelTransition = false;
+
+currentLevel++;
+
+levelText.text = "Level: " + currentLevel;
+
+// Äpfel schneller machen
+appleSpeed.min += 30;
+
+appleSpeed.max += 30;
+
+}
+
+});
+
+onUpdate(() => {
+
+if (score >= 20 && currentLevel === 1 && !gameOver && !levelTransition) {
+
+showLevelTransition(2);
+
+}
+
+if (score >= 35 && currentLevel === 2 && !gameOver && !levelTransition) {
+
+showLevelTransition(3);
+
+}
+
+});
+
+// ========= Game Over =========
+
+function endGame() {
+
+gameOver = true;
+
+add([
+
+rect(width(), height()),
+
+pos(0, 0),
+
+color(0, 0, 0),
+
+k.opacity(0.35),
+
+k.fixed(),
+
+]);
+
+add([
+
+text("GAME OVER\nScore: " + score + "\n(Seite neu laden zum Neustart)", { size: 40, align: "center" }),
+
+pos(width() / 2, height() / 2),
+
+anchor("center"),
+
+color(255, 255, 255),
+
+k.fixed(),
+
+]);
+
+}
+
+// ========= HINTERGRUND =========
+
+// Himmel
+add([
+rect(width(), height()),
+pos(0, 0),
+color(135, 206, 235),
+k.z(-100),
+]);
+
+// Gras
+add([
+rect(width(), 100),
+pos(0, height() - 100),
+color(34, 139, 34),
+k.z(-50),
+]);
+
+// Wolken spawnen
+for (let i = 0; i < 4; i++) {
+const cloud = add([
+pos(rand(0, width()), rand(20, 150)),
+move(k.LEFT, rand(15, 30)),
+k.z(-90),
+"cloud",
+]);
+
+// Wolkenform (3 Kreise)
+cloud.add([
+circle(25),
+pos(0, 0),
+color(255, 255, 255),
+k.opacity(0.8),
+]);
+
+cloud.add([
+circle(30),
+pos(30, 0),
+color(255, 255, 255),
+k.opacity(0.8),
+]);
+
+cloud.add([
+circle(20),
+pos(55, 0),
+color(255, 255, 255),
+k.opacity(0.8),
+]);
+}
+
+// Wolken Loop (neue Wolken wenn alte raus)
+onUpdate("cloud", (c) => {
+if (c.pos.x < -100) {
+c.pos.x = width() + 100;
+c.pos.y = rand(20, 150);
+}
+});
+
+// Vögel spawnen
+for (let i = 0; i < 3; i++) {
+const bird = add([
+pos(rand(0, width()), rand(30, 120)),
+move(k.RIGHT, rand(40, 70)),
+k.z(-85),
+"bird",
+]);
+
+// Einfache V-Form für Vogel
+bird.add([
+rect(15, 2),
+pos(-8, 0),
+color(50, 50, 50),
+k.rotate(-25),
+]);
+
+bird.add([
+rect(15, 2),
+pos(8, 0),
+color(50, 50, 50),
+k.rotate(25),
+]);
+}
+
+// Vögel Loop
+onUpdate("bird", (b) => {
+if (b.pos.x > width() + 50) {
+b.pos.x = -50;
+b.pos.y = rand(30, 120);
+}
+});
+
+</script>
