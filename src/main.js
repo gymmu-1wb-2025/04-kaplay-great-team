@@ -48,6 +48,15 @@ basket.add([k.rect(10, 40), k.pos(0, 0), k.color(139, 69, 19)]);
 // Korb-Rechte Seite
 basket.add([k.rect(10, 40), k.pos(70, 0), k.color(139, 69, 19)]);
 
+// Grüner Boden (Gras)
+k.add([
+	k.rect(1350, 80),
+	k.pos(0, 670),
+	k.color(34, 139, 34), // Grün
+	k.body({ isStatic: true }),
+	k.area(),
+]);
+
 const player = k.add([
 	k.circle(20),
 	k.pos(320, 240),
