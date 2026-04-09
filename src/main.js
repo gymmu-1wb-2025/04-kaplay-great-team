@@ -19,7 +19,26 @@ k.go("init");
 
 k.setGravity(1200);
 
-k.add([k.circle(20), k.pos(320, 240), k.color("red")]);
-k.add([k.rect(640, 20), k.pos(0, 460), k.color("green")]);
+const player = k.add([
+	k.circle(20),
+	k.pos(320, 240),
+	k.color("red"),
+	k.body(),
+	k.area(),
+]);
+k.add([
+	k.rect(640, 20),
+	k.pos(0, 460),
+	k.color("green"),
+	k.body({ isStatic: true }),
+	k.area(),
+]);
 
+player.onKeyPress("space", () => {
+	player.jump();
+});
+
+player.onKeyDown("d", () => {
+	player.move(10, 0);
+});
 export default k;
