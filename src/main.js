@@ -17,7 +17,15 @@ k.scene("lvl-01", sc01);
 
 k.go("init");
 
-k.setGravity(1200);
+k.setGravity(800);
+
+// score anzeigen
+let score = 0;
+const scoreText = k.add([
+	k.text("Score: 0", { size: 32 }),
+	k.pos(20, 20),
+	k.color(255, 255, 255),
+]);
 
 const player = k.add([
 	k.circle(20),
@@ -39,6 +47,14 @@ player.onKeyPress("space", () => {
 });
 
 player.onKeyDown("d", () => {
-	player.move(10, 0);
+	player.move(320, 0);
 });
+player.onKeyDown("a", () => {
+	player.move(-320, 0);
+});
+
+player.onKeyPress("enter", () => {
+	player.destroy();
+});
+
 export default k;
