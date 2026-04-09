@@ -27,6 +27,14 @@ const scoreText = k.add([
 	k.color(255, 255, 255),
 ]);
 
+// Korb (Spieler) - aus mehreren Rechtecken gebaut
+const basket = k.add([
+	k.pos(320, 420),
+	k.area({ width: 80, height: 40 }),
+	k.body({ isStatic: true }),
+	"basket",
+]);
+
 const player = k.add([
 	k.circle(20),
 	k.pos(320, 240),
