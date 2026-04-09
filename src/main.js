@@ -57,13 +57,37 @@ k.add([
 	k.area(),
 ]);
 
-const player = k.add([
-	k.circle(20),
-	k.pos(320, 240),
-	k.color("red"),
-	k.body(),
-	k.area(),
-]);
+// Äpfel spawnen
+k.loop(1.5, () => {
+	// Zufällig roten oder grünen Apfel
+	const isRed = k.rand() > 0.5;
+	const appleColor = isRed ? [255, 0, 0] : [0, 200, 0];
+	const points = isRed ? 1 : -1;
+
+	const apple = k.add([
+		k.circle(15),
+		k.pos(k.rand(50, 1300), -20),
+		k.color(appleColor[0], appleColor[1], appleColor[2]),
+		k.area(),
+		k.body(),
+		{ points: points },
+	]);
+
+	// Wenn Apfel den Korb trifft
+	apple.onCollide("basket", () => {
+		score += points;
+		scoreText.text = "Score: " + score;
+		apple.destroy();
+	});
+
+	// Apfel löschen wenn er unten ist
+	apple.onUpdate(() => {
+		if (apple.pos.y > 750) {
+			apple.destroy();
+		}
+	});
+});
+
 k.add([
 	k.rect(640, 20),
 	k.pos(0, 460),
