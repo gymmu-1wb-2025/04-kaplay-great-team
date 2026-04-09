@@ -17,6 +17,8 @@ k.scene("lvl-01", sc01);
 
 k.go("init");
 
+k.setGravity(1200);
+
 k.add([k.circle(20), k.pos(320, 240), k.color("red")]);
 k.add([k.rect(640, 20), k.pos(0, 460), k.color("green")]);
 
