@@ -35,6 +35,13 @@ const basket = k.add([
 	"basket",
 ]);
 
+// Korb-Boden
+basket.add([
+	k.rect(80, 10),
+	k.pos(0, 30),
+	k.color(139, 69, 19), // Braun
+]);
+
 const player = k.add([
 	k.circle(20),
 	k.pos(320, 240),
