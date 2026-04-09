@@ -42,6 +42,12 @@ basket.add([
 	k.color(139, 69, 19), // Braun
 ]);
 
+// Korb-Linke Seite
+basket.add([k.rect(10, 40), k.pos(0, 0), k.color(139, 69, 19)]);
+
+// Korb-Rechte Seite
+basket.add([k.rect(10, 40), k.pos(70, 0), k.color(139, 69, 19)]);
+
 const player = k.add([
 	k.circle(20),
 	k.pos(320, 240),
