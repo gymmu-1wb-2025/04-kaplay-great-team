@@ -1,66 +1,43 @@
 import kaplay from "kaplay";
-import sc00 from "./scenes/sc-00";
-import sc01 from "./scenes/sc-01";
 
 const k = kaplay({
-	height: 750,
 	width: 1350,
+	height: 750,
 	canvas: document.getElementById("game-canvas"),
-	background: "#82b4b4",
+	background: [135, 206, 235],
 	global: false,
 	debug: true,
 	debugKey: "r",
 });
 
-k.scene("init", sc00);
-k.scene("lvl-01", sc01);
-
-k.go("init");
-
 k.setGravity(800);
 
-// score anzeigen
 let score = 0;
+
 const scoreText = k.add([
 	k.text("Score: 0", { size: 32 }),
 	k.pos(20, 20),
 	k.color(255, 255, 255),
 ]);
 
-// Korb (Spieler) - aus mehreren Rechtecken gebaut
-const basket = k.add([
-	k.pos(320, 420),
-	k.area({ width: 80, height: 40 }),
-	k.body({ isStatic: true }),
-	"basket",
-]);
-
-// Korb-Boden
-basket.add([
-	k.rect(80, 10),
-	k.pos(0, 30),
-	k.color(139, 69, 19), // Braun
-]);
-
-// Korb-Linke Seite
-basket.add([k.rect(10, 40), k.pos(0, 0), k.color(139, 69, 19)]);
-
-// Korb-Rechte Seite
-basket.add([k.rect(10, 40), k.pos(70, 0), k.color(139, 69, 19)]);
-
-// Grüner Boden (Gras)
 k.add([
 	k.rect(1350, 80),
 	k.pos(0, 670),
-	k.color(34, 139, 34), // Grün
-	k.body({ isStatic: true }),
+	k.color(34, 139, 34),
 	k.area(),
+	k.body({ isStatic: true }),
 ]);
 
-// Äpfel spawnen
+const basket = k.add([
+	k.rect(80, 40),
+	k.pos(620, 610),
+	k.color(139, 69, 19),
+	k.area(),
+	"basket",
+]);
+
 k.loop(1.5, () => {
-	// Zufällig roten oder grünen Apfel
-	const isRed = k.rand() > 0.5;
+	const isRed = k.rand(0, 1) > 0.5;
 	const appleColor = isRed ? [255, 0, 0] : [0, 200, 0];
 	const points = isRed ? 1 : -1;
 
@@ -73,14 +50,12 @@ k.loop(1.5, () => {
 		{ points: points },
 	]);
 
-	// Wenn Apfel den Korb trifft
 	apple.onCollide("basket", () => {
-		score += points;
+		score += apple.points;
 		scoreText.text = "Score: " + score;
 		apple.destroy();
 	});
 
-	// Apfel löschen wenn er unten ist
 	apple.onUpdate(() => {
 		if (apple.pos.y > 750) {
 			apple.destroy();
@@ -88,27 +63,28 @@ k.loop(1.5, () => {
 	});
 });
 
-k.add([
-	k.rect(640, 20),
-	k.pos(0, 460),
-	k.color("green"),
-	k.body({ isStatic: true }),
-	k.area(),
-]);
-
-player.onKeyPress("space", () => {
-	player.jump();
+k.onKeyDown("d", () => {
+	if (basket.pos.x < 1270) {
+		basket.move(300, 0);
+	}
 });
 
-player.onKeyDown("d", () => {
-	player.move(320, 0);
-});
-player.onKeyDown("a", () => {
-	player.move(-320, 0);
+k.onKeyDown("a", () => {
+	if (basket.pos.x > 0) {
+		basket.move(-300, 0);
+	}
 });
 
-player.onKeyPress("enter", () => {
-	player.destroy();
+k.onKeyDown("right", () => {
+	if (basket.pos.x < 1270) {
+		basket.move(300, 0);
+	}
+});
+
+k.onKeyDown("left", () => {
+	if (basket.pos.x > 0) {
+		basket.move(-300, 0);
+	}
 });
 
 export default k;
